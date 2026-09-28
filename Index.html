@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ultimate Puzzle Game</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    min-height:100vh;
+    font-family:Arial,sans-serif;
+    background:
+        radial-gradient(circle at top,#4f46e5,#111827 55%,#020617);
+    color:white;
+}
+
+/* ================= LOGIN ================= */
+
+#loginPage{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.loginBox{
+    width:min(420px,100%);
+    padding:35px 25px;
+    border-radius:25px;
+    background:rgba(255,255,255,.10);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.2);
+    box-shadow:0 25px 70px rgba(0,0,0,.5);
+    text-align:center;
+}
+
+.loginBox h1{
+    font-size:34px;
+    margin-bottom:8px;
+}
+
+.loginBox p{
+    opacity:.7;
+    margin-bottom:25px;
+}
+
+.input{
+    width:100%;
+    padding:14px;
+    margin-bottom:12px;
+    border:0;
+    border-radius:12px;
+    outline:none;
+    font-size:16px;
+}
+
+.loginBtn{
+    width:100%;
+    padding:14px;
+    border:0;
+    border-radius:12px;
+    background:white;
+    color:#111827;
+    font-weight:bold;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.loginBtn:hover{
+    transform:translateY(-2px);
+}
+
+.loginMessage{
+    margin-top:15px;
+    min-height:25px;
+    color:#fca5a5;
+}
+
+.loginInfo{
+    margin-top:18px;
+    font-size:13px;
+    opacity:.6;
+}
+
+
+/* ================= GAME ================= */
+
+#gamePage{
+    display:none;
+    min-height:100vh;
+    padding:15px;
+}
+
+.game{
+    width:min(900px,100%);
+    margin:auto;
+    padding:20px;
+    border-radius:25px;
+    background:rgba(255,255,255,.10);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.2);
+    box-shadow:0 25px 70px rgba(0,0,0,.45);
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+    flex-wrap:wrap;
+}
+
+.userInfo{
+    background:rgba(0,0,0,.25);
+    padding:10px 15px;
+    border-radius:12px;
+}
+
+.userInfo b{
+    color:#a5b4fc;
+}
+
+.logout{
+    border:0;
+    padding:9px 13px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+h1{
+    text-align:center;
+    font-size:32px;
+    margin-bottom:6px;
+}
+
+.subtitle{
+    text-align:center;
+    opacity:.7;
+    margin-bottom:18px;
+}
+
+
+/* IMAGE SELECTOR */
+
+.images{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    margin-bottom:15px;
+}
+
+.imageBtn{
+    min-width:85px;
+    height:60px;
+    border:3px solid transparent;
+    border-radius:10px;
+    overflow:hidden;
+    cursor:pointer;
+}
+
+.imageBtn img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.imageBtn.active{
+    border-color:white;
+}
+
+
+/* CONTROLS */
+
+.controls{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:15px;
+}
+
+button,select{
+    padding:10px 15px;
+    border:0;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+
+/* STATS */
+
+.stats{
+    display:flex;
+    justify-content:space-around;
+    background:rgba(0,0,0,.25);
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:15px;
+}
+
+.stat{
+    text-align:center;
+}
+
+.stat span{
+    display:block;
+    font-size:20px;
+    font-weight:bold;
+}
+
+
+/* BOARD */
+
+#board{
+    position:relative;
+    width:min(700px,95vw);
+    height:min(700px,70vh);
+    min-height:400px;
+    margin:auto;
+
+    border-radius:18px;
+
+    background:
+        linear-gradient(
+            45deg,
+            rgba(255,255,255,.08) 25%,
+            transparent 25%,
+            transparent 75%,
+            rgba(255,255,255,.08) 75%
+        );
+
+    background-size:30px 30px;
+
+    border:2px dashed rgba(255,255,255,.3);
+
+    overflow:hidden;
+    touch-action:none;
+}
+
+
+/* TARGET */
+
+.target{
+    position:absolute;
+    border:2px dashed rgba(255,255,255,.35);
+    border-radius:6px;
+    pointer-events:none;
+}
+
+
+/* PIECE */
+
+.piece{
+    position:absolute;
+    background-repeat:no-repeat;
+    border-radius:6px;
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.4);
+
+    transition:box-shadow .15s;
+}
+
+.piece.dragging{
+    z-index:1000;
+    transform:scale(1.05);
+    box-shadow:0 20px 40px rgba(0,0,0,.6);
+}
+
+.piece.fixed{
+    cursor:default;
+    box-shadow:
+        0 0 0 3px #22c55e,
+        0 0 20px rgba(34,197,94,.5);
+}
+
+.piece.fixed::after{
+    content:"✓";
+    position:absolute;
+    right:5px;
+    top:5px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#22c55e;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:bold;
+}
+
+
+/* MESSAGE */
+
+.message{
+    text-align:center;
+    margin-top:15px;
+    min-height:28px;
+    font-weight:bold;
+}
+
+.win{
+    font-size:22px;
+    animation:win .6s ease;
+}
+
+@keyframes win{
+    0%{transform:scale(.7)}
+    60%{transform:scale(1.15)}
+    100%{transform:scale(1)}
+}
+
+
+/* PROFILE */
+
+.profile{
+    margin-top:20px;
+    padding:15px;
+    background:rgba(0,0,0,.2);
+    border-radius:15px;
+    text-align:center;
+}
+
+.profile strong{
+    color:#a5b4fc;
+}
+
+@media(max-width:600px){
+    .game{
+        padding:15px;
+    }
+
+    h1{
+        font-size:26px;
+    }
+
+    #board{
+        width:95vw;
+        height:65vh;
+        min-height:350px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+
+<!-- =================================================
+     LOGIN / REGISTER PAGE
+================================================= -->
+
+<div id="loginPage">
+
+<div class="loginBox">
+
+<h1>🧩 Puzzle Login</h1>
+
+<p>
+Create an account or login to continue
+</p>
+
+<input
+    id="username"
+    class="input"
+    type="text"
+    placeholder="Username"
+    autocomplete="username"
+>
+
+<input
+    id="password"
+    class="input"
+    type="password"
+    placeholder="Password"
+    autocomplete="current-password"
+>
+
+<button
+    class="loginBtn"
+    onclick="loginOrRegister()"
+>
+Login / Register
+</button>
+
+<div
+    class="loginMessage"
+    id="loginMessage"
+></div>
+
+<div class="loginInfo">
+Your progress is saved on this browser.
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =================================================
+     GAME PAGE
+================================================= -->
+
+<div id="gamePage">
+
+<div class="game">
+
+<div class="topbar">
+
+<div class="userInfo">
+👤 <b id="currentUser"></b>
+</div>
+
+<button
+    class="logout"
+    onclick="logout()"
+>
+Logout
+</button>
+
+</div>
+
+
+<h1>🧩 Drag Puzzle</h1>
+
+<p class="subtitle">
+Drag each piece to its correct place.
+</p>
+
+
+<!-- IMAGES -->
+
+<div
+    class="images"
+    id="images"
+></div>
+
+
+<!-- CONTROLS -->
+
+<div class="controls">
+
+<select id="difficulty">
+
+<option value="3">
+Easy — 3 × 3
+</option>
+
+<option value="4" selected>
+Medium — 4 × 4
+</option>
+
+<option value="5">
+Hard — 5 × 5
+</option>
+
+</select>
+
+<button onclick="newGame()">
+🔀 New Puzzle
+</button>
+
+<button onclick="resetGame()">
+↩ Reset
+</button>
+
+</div>
+
+
+<!-- STATS -->
+
+<div class="stats">
+
+<div class="stat">
+<span id="moves">0</span>
+<small>Moves</small>
+</div>
+
+<div class="stat">
+<span id="fixed">0</span>
+<small>Fixed</small>
+</div>
+
+<div class="stat">
+<span id="timer">00:00</span>
+<small>Time</small>
+</div>
+
+</div>
+
+
+<!-- BOARD -->
+
+<div id="board"></div>
+
+
+<div
+    class="message"
+    id="message"
+>
+Drag the pieces to their correct places.
+</div>
+
+
+<!-- PROFILE -->
+
+<div class="profile">
+
+👤 Account:
+<strong id="profileUser"></strong>
+
+<br><br>
+
+🏆 Total Puzzles Solved:
+<strong id="totalSolved">0</strong>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =================================================
+   DATABASE USING LOCAL STORAGE
+================================================= */
+
+function getUsers(){
+
+    return JSON.parse(
+        localStorage.getItem("puzzleUsers") || "{}"
+    );
+
+}
+
+
+function saveUsers(users){
+
+    localStorage.setItem(
+        "puzzleUsers",
+        JSON.stringify(users)
+    );
+
+}
+
+
+/* =================================================
+   LOGIN / REGISTER
+================================================= */
+
+function loginOrRegister(){
+
+    const username=
+        document
+        .getElementById("username")
+        .value
+        .trim();
+
+    const password=
+        document
+        .getElementById("password")
+        .value;
+
+
+    const message=
+        document
+        .getElementById("loginMessage");
+
+
+    if(username.length<3){
+
+        message.textContent=
+            "Username must be at least 3 characters.";
+
+        return;
+
+    }
+
+
+    if(password.length<4){
+
+        message.textContent=
+            "Password must be at least 4 characters.";
+
+        return;
+
+    }
+
+
+    const users=getUsers();
+
+
+    /*
+       USER ALREADY EXISTS
+    */
+
+    if(users[username]){
+
+        /*
+           Check password
+        */
+
+        if(users[username].password!==password){
+
+            message.textContent=
+                "❌ Wrong password.";
+
+            return;
+
+        }
+
+
+        /*
+           LOGIN
+        */
+
+        localStorage.setItem(
+            "currentPuzzleUser",
+            username
+        );
+
+
+        openGame();
+
+        return;
+
+    }
+
+
+    /*
+       NEW USER
+    */
+
+    users[username]={
+
+        password:password,
+
+        solved:0
+
+    };
+
+
+    saveUsers(users);
+
+
+    localStorage.setItem(
+        "currentPuzzleUser",
+        username
+    );
+
+
+    openGame();
+
+}
+
+
+/* =================================================
+   OPEN GAME
+================================================= */
+
+function openGame(){
+
+    document
+    .getElementById("loginPage")
+    .style.display="none";
+
+
+    document
+    .getElementById("gamePage")
+    .style.display="block";
+
+
+    const username=
+        localStorage.getItem(
+            "currentPuzzleUser"
+        );
+
+
+    document
+    .getElementById("currentUser")
+    .textContent=username;
+
+
+    document
+    .getElementById("profileUser")
+    .textContent=username;
+
+
+    updateSolved();
+
+
+    resetGame();
+
+}
+
+
+/* =================================================
+   LOGOUT
+================================================= */
+
+function logout(){
+
+    stopTimer();
+
+
+    localStorage.removeItem(
+        "currentPuzzleUser"
+    );
+
+
+    document
+    .getElementById("gamePage")
+    .style.display="none";
+
+
+    document
+    .getElementById("loginPage")
+    .style.display="flex";
+
+
+    document
+    .getElementById("password")
+    .value="";
+
+}
+
+
+/* =================================================
+   USER SOLVED COUNT
+================================================= */
+
+function updateSolved(){
+
+    const username=
+        localStorage.getItem(
+            "currentPuzzleUser"
+        );
+
+
+    const users=getUsers();
+
+
+    const solved=
+        users[username]
+        ? users[username].solved
+        : 0;
+
+
+    document
+    .getElementById("totalSolved")
+    .textContent=solved;
+
+}
+
+
+function addSolvedPuzzle(){
+
+    const username=
+        localStorage.getItem(
+            "currentPuzzleUser"
+        );
+
+
+    const users=getUsers();
+
+
+    if(users[username]){
+
+        users[username].solved++;
+
+        saveUsers(users);
+
+        updateSolved();
+
+    }
+
+}
+
+
+/* =================================================
+   IMAGES
+================================================= */
+
+const images=[
+
+"https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80",
+
+"https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1000&q=80",
+
+"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80",
+
+"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1000&q=80",
+
+"https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1000&q=80"
+
+];
+
+
+let currentImage=0;
+let size=4;
+
+let pieces=[];
+
+let moves=0;
+let fixedCount=0;
+
+let seconds=0;
+let timer=null;
+
+let dragging=null;
+
+let puzzleCompleted=false;
+
+
+/* =================================================
+   IMAGE BUTTONS
+================================================= */
+
+const imageContainer=
+document.getElementById("images");
+
+
+images.forEach((src,index)=>{
+
+    const button=
+        document.createElement("div");
+
+    button.className="imageBtn";
+
+
+    if(index===0)
+        button.classList.add("active");
+
+
+    button.innerHTML=
+        `<img src="${src}">`;
+
+
+    button.onclick=()=>{
+
+        currentImage=index;
+
+
+        document
+        .querySelectorAll(".imageBtn")
+        .forEach(b=>{
+            b.classList.remove("active");
+        });
+
+
+        button.classList.add("active");
+
+
+        resetGame();
+
+    };
+
+
+    imageContainer.appendChild(button);
+
+});
+
+
+/* =================================================
+   CREATE PUZZLE
+================================================= */
+
+function createPuzzle(){
+
+    size=
+        Number(
+            document
+            .getElementById("difficulty")
+            .value
+        );
+
+
+    pieces=[];
+
+    const board=
+        document.getElementById("board");
+
+
+    board.innerHTML="";
+
+
+    const bw=board.clientWidth;
+
+    const bh=board.clientHeight;
+
+
+    const pieceW=bw/size;
+
+    const pieceH=bh/size;
+
+
+    const total=size*size;
+
+
+    /*
+       Create all target spaces
+    */
+
+    for(let i=0;i<total;i++){
+
+        const row=
+            Math.floor(i/size);
+
+        const col=
+            i%size;
+
+
+        /*
+           Target
+        */
+
+        const target=
+            document.createElement("div");
+
+        target.className="target";
+
+
+        target.style.width=
+            pieceW+"px";
+
+        target.style.height=
+            pieceH+"px";
+
+
+        target.style.left=
+            col*pieceW+"px";
+
+        target.style.top=
+            row*pieceH+"px";
+
+
+        board.appendChild(target);
+
+
+        /*
+           Piece
+        */
+
+        const piece=
+            document.createElement("div");
+
+
+        piece.className="piece";
+
+
+        piece.style.width=
+            pieceW+"px";
+
+        piece.style.height=
+            pieceH+"px";
+
+
+        piece.style.backgroundImage=
+            `url("${images[currentImage]}")`;
+
+
+        piece.style.backgroundSize=
+            `${size*100}% ${size*100}%`;
+
+
+        piece.style.backgroundPosition=
+            `${(col/(size-1))*100}% `+
+            `${(row/(size-1))*100}%`;
+
+
+        /*
+           Random starting location
+        */
+
+        const randomX=
+            Math.random()*
+            Math.max(0,bw-pieceW);
+
+
+        const randomY=
+            Math.random()*
+            Math.max(0,bh-pieceH);
+
+
+        piece.style.left=
+            randomX+"px";
+
+
+        piece.style.top=
+            randomY+"px";
+
+
+        const data={
+
+            id:i,
+
+            element:piece,
+
+            correctX:col*pieceW,
+
+            correctY:row*pieceH,
+
+            x:randomX,
+
+            y:randomY,
+
+            width:pieceW,
+
+            height:pieceH,
+
+            fixed:false
+
+        };
+
+
+        pieces.push(data);
+
+
+        piece.addEventListener(
+            "pointerdown",
+            e=>startDrag(e,data)
+        );
+
+
+        board.appendChild(piece);
+
+    }
+
+}
+
+
+/* =================================================
+   DRAG START
+================================================= */
+
+function startDrag(e,data){
+
+    if(data.fixed)
+        return;
+
+
+    dragging=data;
+
+
+    startTimer();
+
+
+    const board=
+        document.getElementById("board");
+
+
+    const rect=
+        board.getBoundingClientRect();
+
+
+    data.offsetX=
+        e.clientX-
+        rect.left-
+        data.x;
+
+
+    data.offsetY=
+        e.clientY-
+        rect.top-
+        data.y;
+
+
+    data.element.classList.add("dragging");
+
+
+    data.element.setPointerCapture(
+        e.pointerId
+    );
+
+
+    data.element.addEventListener(
+        "pointermove",
+        dragMove
+    );
+
+
+    data.element.addEventListener(
+        "pointerup",
+        endDrag
+    );
+
+
+    e.preventDefault();
+
+}
+
+
+/* =================================================
+   DRAG MOVE
+================================================= */
+
+function dragMove(e){
+
+    if(!dragging)
+        return;
+
+
+    const data=dragging;
+
+
+    const board=
+        document.getElementById("board");
+
+
+    const rect=
+        board.getBoundingClientRect();
+
+
+    let x=
+        e.clientX-
+        rect.left-
+        data.offsetX;
+
+
+    let y=
+        e.clientY-
+        rect.top-
+        data.offsetY;
+
+
+    /*
+       Keep inside board
+    */
+
+    x=Math.max(
+        0,
+        Math.min(
+            x,
+            board.clientWidth-data.width
+        )
+    );
+
+
+    y=Math.max(
+        0,
+        Math.min(
+            y,
+            board.clientHeight-data.height
+        )
+    );
+
+
+    data.x=x;
+    data.y=y;
+
+
+    data.element.style.left=
+        x+"px";
+
+    data.element.style.top=
+        y+"px";
+
+}
+
+
+/* =================================================
+   DRAG END
+================================================= */
+
+function endDrag(e){
+
+    if(!dragging)
+        return;
+
+
+    const data=dragging;
+
+
+    data.element.classList.remove(
+        "dragging"
+    );
+
+
+    data.element.removeEventListener(
+        "pointermove",
+        dragMove
+    );
+
+
+    data.element.removeEventListener(
+        "pointerup",
+        endDrag
+    );
+
+
+    moves++;
+
+
+    /*
+       Calculate distance from correct place
+    */
+
+    const distance=
+        Math.sqrt(
+
+            Math.pow(
+                data.x-data.correctX,
+                2
+            )
+
+            +
+
+            Math.pow(
+                data.y-data.correctY,
+                2
+            )
+
+        );
+
+
+    const tolerance=
+        Math.min(
+            data.width,
+            data.height
+        )*0.30;
+
+
+    /*
+       CORRECT
+    */
+
+    if(distance<=tolerance){
+
+        data.x=data.correctX;
+
+        data.y=data.correctY;
+
+
+        data.element.style.left=
+            data.correctX+"px";
+
+
+        data.element.style.top=
+            data.correctY+"px";
+
+
+        data.fixed=true;
+
+
+        data.element.classList.add(
+            "fixed"
+        );
+
+
+        fixedCount++;
+
+
+        playCorrectSound();
+
+
+        document
+        .getElementById("message")
+        .textContent=
+        "🔊 ✅ Correct! Piece locked!";
+
+
+        checkWin();
+
+    }
+
+    /*
+       WRONG
+    */
+
+    else{
+
+        /*
+           IMPORTANT:
+           Piece stays exactly where
+           user dropped it.
+        */
+
+        document
+        .getElementById("message")
+        .textContent=
+        "Piece stays here. Drag it again when ready.";
+
+    }
+
+
+    updateStats();
+
+
+    dragging=null;
+
+}
+
+
+/* =================================================
+   CORRECT SOUND
+================================================= */
+
+function playCorrectSound(){
+
+    /*
+       Browser Audio API
+       No external sound file needed.
+    */
+
+    const AudioContext=
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+
+    if(!AudioContext)
+        return;
+
+
+    const audio=
+        new AudioContext();
+
+
+    const oscillator=
+        audio.createOscillator();
+
+
+    const gain=
+        audio.createGain();
+
+
+    oscillator.type="sine";
+
+
+    oscillator.frequency.setValueAtTime(
+        600,
+        audio.currentTime
+    );
+
+
+    oscillator.frequency.exponentialRampToValueAtTime(
+        1000,
+        audio.currentTime+0.12
+    );
+
+
+    gain.gain.setValueAtTime(
+        .15,
+        audio.currentTime
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        .001,
+        audio.currentTime+.2
+    );
+
+
+    oscillator.connect(gain);
+
+    gain.connect(audio.destination);
+
+
+    oscillator.start();
+
+    oscillator.stop(
+        audio.currentTime+.2
+    );
+
+}
+
+
+/* =================================================
+   TIMER
+================================================= */
+
+function startTimer(){
+
+    if(timer)
+        return;
+
+
+    timer=setInterval(()=>{
+
+        seconds++;
+
+
+        document
+        .getElementById("timer")
+        .textContent=
+            formatTime(seconds);
+
+    },1000);
+
+}
+
+
+function stopTimer(){
+
+    if(timer){
+
+        clearInterval(timer);
+
+        timer=null;
+
+    }
+
+}
+
+
+function formatTime(sec){
+
+    const min=
+        Math.floor(sec/60)
+        .toString()
+        .padStart(2,"0");
+
+
+    const s=
+        (sec%60)
+        .toString()
+        .padStart(2,"0");
+
+
+    return `${min}:${s}`;
+
+}
+
+
+/* =================================================
+   STATS
+================================================= */
+
+function updateStats(){
+
+    document
+    .getElementById("moves")
+    .textContent=moves;
+
+
+    document
+    .getElementById("fixed")
+    .textContent=
+        fixedCount+
+        "/"+
+        pieces.length;
+
+
+    document
+    .getElementById("timer")
+    .textContent=
+        formatTime(seconds);
+
+}
+
+
+/* =================================================
+   WIN
+================================================= */
+
+function checkWin(){
+
+    if(
+        fixedCount===
+        pieces.length &&
+        !puzzleCompleted
+    ){
+
+        puzzleCompleted=true;
+
+
+        stopTimer();
+
+
+        /*
+           ADD TO ACCOUNT
+        */
+
+        addSolvedPuzzle();
+
+
+        const message=
+            document
+            .getElementById("message");
+
+
+        message.textContent=
+            `🎉 PUZZLE COMPLETE! `
+            +`${moves} moves • `
+            +`${formatTime(seconds)}`;
+
+
+        message.classList.add("win");
+
+    }
+
+}
+
+
+/* =================================================
+   NEW GAME
+================================================= */
+
+function newGame(){
+
+    stopTimer();
+
+
+    moves=0;
+
+    fixedCount=0;
+
+    seconds=0;
+
+    puzzleCompleted=false;
+
+
+    document
+    .getElementById("message")
+    .classList.remove("win");
+
+
+    createPuzzle();
+
+
+    updateStats();
+
+
+    document
+    .getElementById("message")
+    .textContent=
+        "🎮 New puzzle started!";
+
+}
+
+
+/* =================================================
+   RESET
+================================================= */
+
+function resetGame(){
+
+    stopTimer();
+
+
+    moves=0;
+
+    fixedCount=0;
+
+    seconds=0;
+
+    puzzleCompleted=false;
+
+
+    document
+    .getElementById("message")
+    .classList.remove("win");
+
+
+    createPuzzle();
+
+
+    updateStats();
+
+
+    document
+    .getElementById("message")
+    .textContent=
+        "Drag pieces to their correct places.";
+
+}
+
+
+/* =================================================
+   DIFFICULTY
+================================================= */
+
+document
+.getElementById("difficulty")
+.addEventListener(
+    "change",
+    resetGame
+);
+
+
+/* =================================================
+   AUTO LOGIN
+================================================= */
+
+window.addEventListener(
+    "load",
+    ()=>{
+
+        const user=
+            localStorage.getItem(
+                "currentPuzzleUser"
+            );
+
+
+        if(user){
+
+            openGame();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
